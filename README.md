@@ -60,5 +60,6 @@ Kaggle (video): add `--render-mode rgb_array --save-video --video-path pong_agen
 - **Helped:** More training steps (exp01 vs exp10), moderate lr + CNN spatial features.  
 - **Hurt:** MLP on flattened frames (exp03), very low lr slowing progress (exp02), large batch slowing improvement vs 32 (exp08).  
 - **Trade-offs:** batch size vs update noise; ε schedule vs late-game greed; γ vs planning horizon.
-
 ---
+## Technical Note on Rendering:
+To comply with the rubric's requirement for visualization while working in a headless Cloud environment (Kaggle), we utilized the Gymnasium video recorder wrapper. This renders the env.render() frames into an MP4 format, allowing for clear evaluation of the agent's behavior without requiring a local GUI.
