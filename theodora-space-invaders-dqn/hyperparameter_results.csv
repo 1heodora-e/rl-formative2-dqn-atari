@@ -1,0 +1,11 @@
+member_name,experiment_name,policy,env_id,timesteps,lr,gamma,batch_size,epsilon_start,epsilon_end,epsilon_decay_fraction,eval_mean_reward,eval_std
+Theodora,exp01_baseline,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.0001,0.99,32,1.0,0.01,0.1,2.67,2.49
+Theodora,exp02_high_lr,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.001,0.9,128,1.0,0.05,0.2,5.0,6.38
+Theodora,exp03_tiny_lr,CnnPolicy,ALE/SpaceInvaders-v5,100000,1e-05,0.999,16,0.5,0.001,0.05,5.67,0.94
+Theodora,exp04_low_gamma,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.0005,0.95,64,1.0,0.1,0.3,2.33,1.7
+Theodora,exp05_large_batch,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.0001,0.999,256,1.0,0.01,0.5,11.33,8.99
+Theodora,exp06_low_lr,CnnPolicy,ALE/SpaceInvaders-v5,100000,5e-05,0.98,32,0.8,0.05,0.4,2.33,2.62
+Theodora,exp07_aggressive_lr,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.001,0.999,64,1.0,0.001,0.15,2.33,1.25
+Theodora,exp08_balanced,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.0002,0.97,128,1.0,0.02,0.25,8.67,10.87
+Theodora,exp09_mlp_policy,MlpPolicy,ALE/SpaceInvaders-v5,100000,0.0001,0.99,32,1.0,0.05,0.1,3.33,2.05
+Theodora,exp10_best,CnnPolicy,ALE/SpaceInvaders-v5,100000,0.0003,0.99,64,1.0,0.01,0.3,3.0,2.94
