@@ -1,7 +1,14 @@
 # rl-formative2-dqn-atari
 
-**Formative 2 — DQN Atari (Stable-Baselines3 + Gymnasium)**  
-**Honorine — `ALE/Pong-v5`**
+**Formative 2 — DQN Atari (Stable-Baselines3 + Gymnasium)**
+
+## Team Members
+- **Honorine** — `ALE/Pong-v5`
+- **Aubert** — `BreakoutNoFrameskip-v4`
+
+---
+
+# Honorine's Work — Pong
 
 | Artifact | Path |
 |----------|------|
@@ -63,3 +70,84 @@ Kaggle (video): add `--render-mode rgb_array --save-video --video-path pong_agen
 ---
 ## Technical Note on Rendering:
 To comply with the rubric's requirement for visualization while working in a headless Cloud environment (Kaggle), we utilized the Gymnasium video recorder wrapper. This renders the env.render() frames into an MP4 format, allowing for clear evaluation of the agent's behavior without requiring a local GUI.
+
+---
+
+# Aubert's Work — Breakout
+
+| Artifact | Path |
+|----------|------|
+| Training | `Aubert-Breakout/train.py` |
+| Evaluation / video | `Aubert-Breakout/play.py` |
+| Best model | `Aubert-Breakout/models/dqn_model.zip` |
+| Results | `Aubert-Breakout/hyperparameter_results.csv` |
+| Gameplay video | `Aubert-Breakout/breakout_dqn-Agent.mp4` |
+
+---
+
+## Setup
+
+```bash
+pip install "stable-baselines3[extra]" gymnasium[atari] ale-py autorom imageio pandas matplotlib
+AutoROM --accept-license
+```
+
+---
+
+## Train & play
+
+```bash
+python Aubert-Breakout/train.py
+python Aubert-Breakout/play.py
+```
+
+**Greedy evaluation (rubric):** `play.py` uses `model.predict(..., deterministic=True)` for greedy action selection.
+
+---
+
+## Hyperparameter experiments (Aubert) — 10 runs + **Noted behavior**
+
+*All experiments ran for 200k timesteps. Best model (exp01_baseline) was retrained with 500k timesteps for final submission.*
+
+| Member | Exp | Key change | Hyperparameters (summary) | Eval Reward | Noted behavior (presentation) |
+|--------|-----|------------|---------------------------|-------------|------------------------------|
+| Aubert | **01** | **Baseline (Best)** | CNN, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.05 (0.1) | **35.6 ± 1.85** | **Best performance.** Balanced exploration-exploitation with stable learning. Agent learned to break bricks effectively. |
+| Aubert | **02** | **High LR** | CNN, lr=5e-4, γ=0.99, batch=32, ε: 1.0→0.05 (0.1) | **0.0 ± 0.0** | **Complete failure.** Learning rate too high caused instability and divergence. Agent failed to learn any meaningful policy. |
+| Aubert | **03** | **Low LR** | CNN, lr=5e-5, γ=0.99, batch=32, ε: 1.0→0.05 (0.1) | **13.0 ± 4.15** | **Slow learner.** More stable but needs significantly more timesteps to converge. Underfitting within 200k steps. |
+| Aubert | **04** | **Lower γ (0.95)** | CNN, lr=1e-4, γ=0.95, batch=32, ε: 1.0→0.05 (0.1) | **16.4 ± 5.50** | **Short-sighted planning.** Agent focused on immediate rewards, less effective at long brick-breaking sequences. |
+| Aubert | **05** | **Very low γ (0.90)** | CNN, lr=1e-4, γ=0.90, batch=32, ε: 1.0→0.05 (0.1) | **2.6 ± 1.96** | **Too myopic.** Severe performance degradation. Agent ignored future rewards, making poor strategic decisions. |
+| Aubert | **06** | **Larger batch (64)** | CNN, lr=1e-4, γ=0.99, batch=64, ε: 1.0→0.05 (0.1) | **29.8 ± 8.35** | **Good but high variance.** More stable gradients but slower updates. Performance close to baseline with more variability. |
+| Aubert | **07** | **Extended exploration** | CNN, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.02 (0.3) | **26.2 ± 11.27** | **Prolonged exploration phase.** Good performance but very high variance. Agent explored longer, delaying exploitation. |
+| Aubert | **08** | **Fast ε decay** | CNN, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.1 (0.05) | **30.2 ± 4.79** | **Quick convergence.** Strong performance with early exploitation. Low variance indicates consistent strategy. |
+| Aubert | **09** | **Tuned ε** | CNN, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.01 (0.15) | **26.0 ± 4.10** | **Balanced approach.** Good exploration-exploitation trade-off with consistent results. |
+| Aubert | **10** | **MLP policy** | MLP, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.05 (0.1) | **0.0 ± 0.0** | **Architecture mismatch.** MLP cannot effectively process raw pixel observations for Atari. CNN is essential for visual games. |
+
+**Takeaway:** **exp01_baseline (500k, CNN)** is the main submission model; **exp02 & exp10** demonstrate the importance of proper hyperparameter selection and CNN architecture for Atari games.
+
+---
+
+## Hyperparameter discussion (Aubert)
+
+### What helped performance:
+- **Moderate learning rate (1e-4):** Balanced learning speed with stability (exp01 vs exp02/exp03)
+- **High gamma (0.99):** Enabled long-term planning crucial for brick-breaking sequences (exp01 vs exp04/exp05)
+- **CNN policy:** Essential for processing visual input from raw pixels (exp01 vs exp10)
+- **Balanced exploration:** Neither too fast nor too slow epsilon decay (exp01/exp08 vs exp07)
+
+### What hurt performance:
+- **Too high learning rate (5e-4):** Caused complete divergence and training instability (exp02)
+- **Very low gamma (0.90):** Made agent myopic, ignoring future rewards (exp05)
+- **MLP policy:** Fundamentally incompatible with image-based observations (exp10)
+- **Extended exploration:** Delayed convergence and increased variance (exp07)
+
+### Key trade-offs:
+- **Learning rate:** Speed vs stability—too high diverges, too low underfits
+- **Gamma (discount factor):** Short-term vs long-term planning horizon
+- **Batch size:** Gradient stability vs update frequency (32 vs 64)
+- **Epsilon schedule:** Exploration vs exploitation timing—impacts convergence speed and final performance
+- **Policy architecture:** CNN required for spatial features in visual games; MLP only for low-dimensional state spaces
+
+### Video demonstration:
+See `Aubert-Breakout/breakout_dqn-Agent.mp4` for gameplay footage showing the trained agent breaking bricks in Breakout.
+
+---
