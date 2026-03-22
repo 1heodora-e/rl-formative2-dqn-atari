@@ -15,11 +15,14 @@ NUM_EPISODES = 5
 if __name__ == "__main__":
     model = DQN.load(MODEL_PATH)
 
-    env = make_atari_env(ENV_ID, n_envs=1, seed=0)
+    env = make_atari_env(
+        ENV_ID, n_envs=1, seed=0, env_kwargs={"render_mode": "human"}
+    )
     env = VecFrameStack(env, n_stack=4)
 
     for ep in range(NUM_EPISODES):
         obs = env.reset()
+        env.render()
         done = False
         total_reward = 0
         steps = 0
@@ -29,6 +32,7 @@ if __name__ == "__main__":
             obs, reward, done, info = env.step(action)
             total_reward += reward[0]
             steps += 1
+            env.render()
 
         print(f"Episode {ep+1}: reward={total_reward:.1f}, steps={steps}")
 

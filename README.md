@@ -5,6 +5,13 @@
 ## Team Members
 - **Honorine** — `ALE/Pong-v5`
 - **Aubert** — `BreakoutNoFrameskip-v4`
+- **Theodora** — `ALE/SpaceInvaders-v5`
+
+## Gameplay videos (in this repository)
+
+- **Pong:** `Honorine-pong/pong_agent.mp4`
+- **Breakout:** `Aubert-Breakout/breakout_dqn-Agent.mp4`
+- **Space Invaders:** `theodora-space-invaders-dqn/space-invaders-dqn-agent.mp4`
 
 ---
 
@@ -15,7 +22,8 @@
 | Training | `Honorine-pong/train.py` |
 | Evaluation / video | `Honorine-pong/play.py` |
 | Best model (typ.) | `Honorine-pong/dqn_model.zip` or `runs/exp01/cnn/dqn_model.zip` |
-| Results | `runs/hyperparameter_results.csv` |
+| Results | `Honorine-pong/hyperparameter_results.csv` |
+| Gameplay video | `Honorine-pong/pong_agent.mp4` |
 
 ---
 
@@ -35,7 +43,7 @@ python Honorine-pong/train.py --env-id ALE/Pong-v5 --policy cnn --exp-name exp01
 python Honorine-pong/play.py --env-id ALE/Pong-v5 --model-path dqn_model.zip --policy cnn --episodes 3 --render-mode human
 ```
 
-Kaggle (video): add `--render-mode rgb_array --save-video --video-path pong_agent.mp4`.
+To record video with `play.py`, use e.g. `--render-mode rgb_array --save-video --video-path pong_agent.mp4` (the committed clip is `Honorine-pong/pong_agent.mp4`).
 
 **Greedy evaluation (rubric):** `play.py` uses `model.predict(..., deterministic=True)` (same idea as GreedyQPolicy).
 
@@ -149,5 +157,74 @@ python Aubert-Breakout/play.py
 
 ### Video demonstration:
 See `Aubert-Breakout/breakout_dqn-Agent.mp4` for gameplay footage showing the trained agent breaking bricks in Breakout.
+
+---
+
+# Theodora's Work — Space Invaders
+
+| Artifact | Path |
+|----------|------|
+| Training | `theodora-space-invaders-dqn/train.py` |
+| Play / eval | `theodora-space-invaders-dqn/play.py` |
+| Trained policy | `theodora-space-invaders-dqn/dqn_model.zip` |
+| Sweep results | `theodora-space-invaders-dqn/hyperparameter_results.csv` |
+| Gameplay recording | `theodora-space-invaders-dqn/space-invaders-dqn-agent.mp4` |
+
+---
+
+## Setup
+
+```bash
+pip install "stable-baselines3[extra]" gymnasium[atari] ale-py autorom imageio pandas matplotlib
+AutoROM --accept-license
+```
+
+---
+
+## Train & play
+
+From the repo root:
+
+```bash
+python theodora-space-invaders-dqn/train.py
+python theodora-space-invaders-dqn/play.py
+```
+
+`train.py` uses the `KAGGLE_WORKING_DIR` environment variable when present (Kaggle); otherwise it writes under `theodora-space-invaders-dqn/` next to the script (`logs/`, `best_model/`, `tensorboard_logs/`, `dqn_model.zip`).
+
+`play.py` loads `dqn_model.zip` from the same folder (or copy the zip from your Kaggle working directory after training) and uses `model.predict(..., deterministic=True)` so evaluation is greedy rather than ε-greedy.
+
+Gameplay recording: `theodora-space-invaders-dqn/space-invaders-dqn-agent.mp4` (also listed in **Gameplay videos** above).
+
+---
+
+## Hyperparameter experiments (Theodora)
+
+Each row is **100k** timesteps on `ALE/SpaceInvaders-v5`. Rewards are **mean ± std** from `hyperparameter_results.csv`. The model we actually use day-to-day is the CNN in `train.py`, trained for **500k** steps with eval callbacks, then loaded in `play.py` as `dqn_model.zip`.
+
+| Member | Exp | Key change | Hyperparameters (summary) | Eval reward | Notes |
+|--------|-----|------------|---------------------------|-------------|-------|
+| Theodora | **01** | **Baseline** | CNN, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.01 (0.1) | **2.67 ± 2.49** | Reasonable starting point; scores bounce around a lot on only 100k steps. |
+| Theodora | **02** | **High LR** | CNN, lr=1e-3, γ=0.9, batch=128, ε: 1.0→0.05 (0.2) | **5.00 ± 6.38** | Mean beats the baseline, but the spread is huge—training feels noisy at this lr. |
+| Theodora | **03** | **Tiny LR** | CNN, lr=1e-5, γ=0.999, batch=16, ε: 0.5→0.001 (0.05) | **5.67 ± 0.94** | Slow and steady: lowest variance in the sweep, even if the average isn’t the highest. |
+| Theodora | **04** | **Low γ** | CNN, lr=5e-4, γ=0.95, batch=64, ε: 1.0→0.1 (0.3) | **2.33 ± 1.70** | Discount a bit too low; the agent doesn’t seem to plan far enough ahead for incoming shots. |
+| Theodora | **05** | **Large batch + long ε decay** | CNN, lr=1e-4, γ=0.999, batch=256, ε: 1.0→0.01 (0.5) | **11.33 ± 8.99** | Best average return here, but std is large—different seeds could tell quite different stories. |
+| Theodora | **06** | **Low LR** | CNN, lr=5e-5, γ=0.98, batch=32, ε: 0.8→0.05 (0.4) | **2.33 ± 2.62** | Updates are so gentle that 100k steps isn’t really enough to see strong play. |
+| Theodora | **07** | **Aggressive LR** | CNN, lr=1e-3, γ=0.999, batch=64, ε: 1.0→0.001 (0.15) | **2.33 ± 1.25** | Another high-lr setup that didn’t pay off—hard to get a stable policy. |
+| Theodora | **08** | **Balanced** | CNN, lr=2e-4, γ=0.97, batch=128, ε: 1.0→0.02 (0.25) | **8.67 ± 10.87** | Solid mean on paper, but variance is rough—extra seeds or longer training would be needed to trust it. |
+| Theodora | **09** | **MLP policy** | MLP, lr=1e-4, γ=0.99, batch=32, ε: 1.0→0.05 (0.1) | **3.33 ± 2.05** | Flattened frames don’t work well here; the CNN runs are clearly more natural for this game. |
+| Theodora | **10** | **Tuned CNN** | CNN, lr=3e-4, γ=0.99, batch=64, ε: 1.0→0.01 (0.3) | **3.00 ± 2.94** | Middle of the pack—sensible knobs, but 100k steps keeps everyone a bit undercooked. |
+
+**Summary:** On a **100k** budget, **exp05** tops the **average** eval score while **exp03** looks the **most consistent**. The CNN trained for **500k** in `train.py` is what we ship in `dqn_model.zip` for playing.
+
+---
+
+## Hyperparameter discussion (Theodora)
+
+**What seemed to help:** Larger batches with γ=0.999 and a long exploration phase (exp05) pushed the highest mean reward, which fits the idea that Space Invaders rewards sparse events and benefits from smoother targets. A very small lr (exp03) didn’t win on average but gave the tightest std—nice when you care about repeatability. Across the board, CNN policies beat the MLP (exp09) on the same timestep budget, which matches what you’d expect from raw frames.
+
+**What dragged things down:** Lower γ (exp04) hurt compared to 0.99–0.999 settings; the agent needs to value “what happens a few shots from now.” Very conservative lr (exp06) barely moved the needle in 100k steps. Pushing lr to 1e-3 (exp02, exp07) mostly looked unstable rather than faster.
+
+**Trade-offs:** There’s a real tension between **chasing a high mean** (exp05, exp08) and **trusting the number** when variance is large. Bumping timesteps or averaging more eval seeds would make the comparison fairer. For lr, the sweet spot for us landed closer to **1e-4–3e-4** than to **1e-3**.
 
 ---

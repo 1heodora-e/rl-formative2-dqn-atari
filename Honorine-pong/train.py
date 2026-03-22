@@ -274,6 +274,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--train-freq", type=int, default=4)
     parser.add_argument("--gradient-steps", type=int, default=1)
     parser.add_argument("--target-update-interval", type=int, default=10_000)
+    parser.add_argument(
+        "--notes",
+        type=str,
+        default="",
+        help="Short qualitative summary for hyperparameter_results.csv (impact on learning, exploration-exploitation, stability).",
+    )
 
     return parser.parse_args()
 
@@ -305,7 +311,10 @@ def main():
                 "epsilon_decay_fraction": args.epsilon_decay_fraction,
                 "eval_mean_reward": round(float(metrics["eval_mean_reward"]), 3),
                 "eval_std_reward": round(float(metrics["eval_std_reward"]), 3),
-                "noted_behavior": "Fill after run (e.g., stable learning, high variance, over/under-exploration).",
+                "noted_behavior": (
+                    args.notes.strip()
+                    or "Summarize after run: learning speed, stability, exploration vs exploitation, vs baseline (see README Honorine table)."
+                ),
                 "model_path": str(run_dir / "dqn_model.zip"),
             }
         )
